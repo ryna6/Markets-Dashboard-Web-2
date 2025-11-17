@@ -4,8 +4,8 @@ import { STORAGE_KEYS } from './constants.js';
 import { toEstIso, getCurrentWeekRangeEst, isOlderThanMinutes, } from './timezone.js';
 import { getCompanyProfile } from './companyService.js';
 
-// Mid+large cap threshold (roughly $2B)
-const MIN_MARKET_CAP = 200_000_000_000;
+// How many earnings to show per week (biggest by market cap)
+const MAX_EARNINGS_COUNT = 80;
 const EARNINGS_REFRESH_MINUTES = 60 * 24; // refresh at most once per day per week
 
 let earningsState = {
@@ -118,9 +118,16 @@ async function refreshEarningsIfNeeded() {
   }
 
   const entries = raw.earningsCalendar || [];
-  const grouped = emptyWeekStruct();
+  if (!entries.length) {
+    earningsState.weekKey = weekKey;
+    earningsState.dataByDay = emptyWeekStruct();
+    earningsState.lastFetch = nowIso;
+    earningsState.status = 'ready';
+    saveCache();
+    return;
+  }
 
-  // Get market caps & logos once per symbol
+  // Fetch profiles / market caps once per symbol
   const symbolSet = new Set(entries.map((e) => e.symbol).filter(Boolean));
   const profiles = {};
 
@@ -128,35 +135,56 @@ async function refreshEarningsIfNeeded() {
     try {
       profiles[symbol] = await getCompanyProfile(symbol);
     } catch (_) {
-      profiles[symbol] = { name: symbol, logo: null, marketCap: null };
+      profiles[symbol] = {
+        symbol,
+        name: symbol,
+        logo: null,
+        marketCap: null,
+      };
     }
   }
 
-  for (const e of entries) {
-    const symbol = e.symbol;
-    if (!symbol) continue;
-
-    const profile = profiles[symbol] || {
-      name: symbol,
+  // Decorate entries with marketCap, then sort + pick top N
+  const decorated = entries.map((e) => {
+    const profile = profiles[e.symbol] || {
+      symbol: e.symbol,
+      name: e.symbol,
       logo: null,
       marketCap: null,
     };
+    return { entry: e, profile };
+  });
 
-    // Filter to mid+large caps only
-    if (
-      profile.marketCap != null &&
-      profile.marketCap < MIN_MARKET_CAP
-    ) {
-      continue;
-    }
+  // Filter out unknown caps first; if we end up with none, fall back to raw entries.
+  let withCap = decorated.filter(
+    (d) =>
+      d.profile.marketCap != null &&
+      typeof d.profile.marketCap === 'number' &&
+      !Number.isNaN(d.profile.marketCap)
+  );
 
+  if (!withCap.length) {
+    // No usable caps, just show everything as a fallback.
+    withCap = decorated;
+  }
+
+  withCap.sort(
+    (a, b) =>
+      (b.profile.marketCap || 0) - (a.profile.marketCap || 0)
+  );
+
+  const top = withCap.slice(0, MAX_EARNINGS_COUNT);
+
+  const grouped = emptyWeekStruct();
+
+  for (const { entry: e, profile } of top) {
     const dayName = weekdayNameFromDate(e.date);
     if (!dayName || !grouped[dayName]) continue;
 
     const session = sessionFromHour(e.hour);
 
     grouped[dayName][session].push({
-      symbol,
+      symbol: e.symbol,
       companyName: profile.name,
       logo: profile.logo,
       date: e.date,
