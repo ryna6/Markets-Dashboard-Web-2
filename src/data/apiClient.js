@@ -9,9 +9,6 @@ const FMP_KEY = 'Gl0UqnbzAqPsM5uBqBMISCn3kDw9If4w';
 
 async function fetchJson(url, options = {}) {
   const res = await fetch(url, options);
-  if (res.status === 429) {
-    throw new Error('rate-limit');
-  }
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`HTTP ${res.status}: ${text}`);
@@ -20,23 +17,20 @@ async function fetchJson(url, options = {}) {
 }
 
 export const apiClient = {
-  // Finnhub for sector heatmap and earnings calendar
-  async finnhub(pathAndQuery) {
+  finnhub(pathAndQuery) {
     const joiner = pathAndQuery.includes('?') ? '&' : '?';
-    const url = `${FINNHUB_BASE}${pathAndQuery}${joiner}token=${encodeURIComponent(FINNHUB_KEY)}`;
+    const url = `${FINNHUB_BASE}${pathAndQuery}${joiner}token=${encodeURIComponent(
+      FINNHUB_KEY
+    )}`;
     return fetchJson(url);
   },
 
-  // CoinGecko stays as-is for crypto
-  async coingecko(pathAndQuery) {
+  coingecko(pathAndQuery) {
     const url = `${CG_BASE}${pathAndQuery}`;
-    const headers = CG_KEY
-      ? { 'x-cg-demo-api-key': CG_KEY }
-      : {};
+    const headers = CG_KEY ? { 'x-cg-demo-api-key': CG_KEY } : {};
     return fetchJson(url, { headers });
-  }
+  },
 
-  // FMP for S&P500 heatmap
   fmp(pathAndQuery) {
     const joiner = pathAndQuery.includes('?') ? '&' : '?';
     const url = `${FMP_BASE}${pathAndQuery}${joiner}apikey=${encodeURIComponent(
