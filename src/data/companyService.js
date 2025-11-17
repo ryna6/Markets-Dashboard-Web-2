@@ -2,9 +2,9 @@
 import { apiClient } from './apiClient.js';
 import { STORAGE_KEYS } from './constants.js';
 
-const PROFILE_TTL_MINUTES = 60 * 24 * 7; // 1 week in cache
+const PROFILE_TTL_MINUTES = 60 * 24 * 7; // cache 1 week
 
-let profileCache = {}; // symbol -> { name, logo, marketCap, lastFetchIso }
+let profileCache = {}; // symbol -> { symbol, name, logo, marketCap, lastFetchIso }
 
 function loadCache() {
   const raw = localStorage.getItem(STORAGE_KEYS.companyProfilesCache);
@@ -43,13 +43,13 @@ export async function getCompanyProfile(symbol) {
     `/stock/profile2?symbol=${encodeURIComponent(key)}`
   );
 
-  // Finnhub: marketCapitalization is usually in billions of USD, but
-  // for our purposes (relative size), the exact units don't matter.
-  const rawCap = typeof data.marketCapitalization === 'number'
-    ? data.marketCapitalization
-    : null;
+  // Finnhub docs: marketCapitalization is a number. Units can be billions;
+  // for our relative comparisons, only ordering matters.
+  const rawCap =
+    typeof data.marketCapitalization === 'number'
+      ? data.marketCapitalization
+      : null;
 
-  // Normalize logo URL: Finnhub sometimes returns "static.finnhub.io/..."
   let logoUrl = null;
   if (data.logo) {
     logoUrl = data.logo.startsWith('http')
