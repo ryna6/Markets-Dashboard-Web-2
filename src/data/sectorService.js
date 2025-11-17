@@ -38,13 +38,16 @@ function loadCache() {
   if (!raw) return;
   try {
     const parsed = JSON.parse(raw);
+    sectorState.quotes = parsed.quotes || sectorState.quotes;
+    sectorState.weeklyChange = parsed.weeklyChange || sectorState.weeklyChange;
     sectorState.marketCaps = parsed.marketCaps || sectorState.marketCaps;
+    sectorState.lastQuotesFetch = parsed.lastQuotesFetch || null;
+    sectorState.lastWeeklyFetch = parsed.lastWeeklyFetch || null;
   } catch (_) {}
 }
 
 function saveCache() {
   const snapshot = {
-    sectors: sectorState.sectors,
     quotes: sectorState.quotes,
     weeklyChange: sectorState.weeklyChange,
     marketCaps: sectorState.marketCaps,
@@ -78,8 +81,6 @@ async function refreshSectorQuotesIfNeeded() {
   sectorState.error = null;
 
   const symbols = getSectorSymbols();
-  if (!symbols.length) return;
-
   const quotes = {};
 
   for (const symbol of symbols) {
@@ -87,23 +88,23 @@ async function refreshSectorQuotesIfNeeded() {
       const data = await apiClient.finnhub(
         `/quote?symbol=${encodeURIComponent(symbol)}`
       );
+
       const price = data.c;
-      let pct1D = typeof data.dp === 'number' ? data.dp : null;
-      if (
-        pct1D == null &&
-        typeof data.c === 'number' &&
-        typeof data.pc === 'number' &&
-        data.pc !== 0
-      ) {
-        pct1D = ((data.c - data.pc) / data.pc) * 100;
-      }
+      let pct1D =
+        typeof data.dp === 'number'
+          ? data.dp
+          : typeof data.c === 'number' &&
+            typeof data.pc === 'number' &&
+            data.pc !== 0
+          ? ((data.c - data.pc) / data.pc) * 100
+          : null;
 
       quotes[symbol] = {
         price,
         changePct1D: pct1D,
       };
-    } catch (_) {
-      continue;
+    } catch (err) {
+      console.warn('Sector quote error', symbol, err);
     }
   }
 
@@ -128,8 +129,6 @@ async function refreshSectorWeeklyIfNeeded() {
   }
 
   const symbols = getSectorSymbols();
-  if (!symbols.length) return;
-
   const weeklyChange = { ...sectorState.weeklyChange };
 
   const nowSec = Math.floor(Date.now() / 1000);
@@ -142,7 +141,9 @@ async function refreshSectorWeeklyIfNeeded() {
           symbol
         )}&resolution=D&from=${weekAgoSec}&to=${nowSec}`
       );
-      if (data.s !== 'ok' || !data.c || data.c.length < 2) continue;
+      if (data.s !== 'ok' || !Array.isArray(data.c) || data.c.length < 2) {
+        continue;
+      }
 
       const closes = data.c;
       const latest = closes[closes.length - 1];
@@ -152,8 +153,8 @@ async function refreshSectorWeeklyIfNeeded() {
 
       const pct = ((latest - weekAgo) / weekAgo) * 100;
       weeklyChange[symbol] = { changePct1W: pct };
-    } catch (_) {
-      continue;
+    } catch (err) {
+      console.warn('Sector weekly candle error', symbol, err);
     }
   }
 
@@ -164,19 +165,17 @@ async function refreshSectorWeeklyIfNeeded() {
 
 async function refreshSectorMarketCapsIfNeeded() {
   const symbols = getSectorSymbols();
-  if (!symbols.length) return;
-
   const marketCaps = { ...sectorState.marketCaps };
 
   for (const symbol of symbols) {
     if (marketCaps[symbol] != null) continue;
     try {
       const profile = await getCompanyProfile(symbol);
-      if (profile.marketCap != null) {
+      if (profile && typeof profile.marketCap === 'number') {
         marketCaps[symbol] = profile.marketCap;
       }
-    } catch (_) {
-      continue;
+    } catch (err) {
+      console.warn('Sector marketCap error', symbol, err);
     }
   }
 
@@ -187,17 +186,23 @@ async function refreshSectorMarketCapsIfNeeded() {
 export async function getSectorData(timeframe) {
   try {
     await refreshSectorQuotesIfNeeded();
-  } catch (_) {}
+  } catch (err) {
+    sectorState.error = err.message;
+  }
 
   if (timeframe === '1W') {
     try {
       await refreshSectorWeeklyIfNeeded();
-    } catch (_) {}
+    } catch (err) {
+      sectorState.error = err.message;
+    }
   }
 
   try {
     await refreshSectorMarketCapsIfNeeded();
-  } catch (_) {}
+  } catch (err) {
+    sectorState.error = err.message;
+  }
 
   return {
     sectors: sectorState.sectors,
