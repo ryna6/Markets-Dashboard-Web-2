@@ -53,6 +53,16 @@ export function renderHeatmap(container, tiles, timeframe) {
     el.style.width = `${w * 100}%`;
     el.style.height = `${h * 100}%`;
 
+    const area = w * h; // normalized area (0–1)
+    let scale = 0.6 + Math.sqrt(area) * 1.6; // base + grow with size
+    
+    // Clamp so it never gets too tiny or huge
+    if (scale < 0.7) scale = 0.7;
+    if (scale > 1.35) scale = 1.35;
+    
+    // Expose to CSS as a custom property
+    el.style.setProperty('--tile-scale', scale.toString());
+
     const pctDisplay =
       pct != null && !Number.isNaN(pct) ? `${pct.toFixed(2)}%` : '--';
 
