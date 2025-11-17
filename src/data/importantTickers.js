@@ -1518,7 +1518,7 @@ export const IMPORTANT_TICKERS = [
 'KITT',
 'OPTT',
 'SOUN',
-'SERV'
+'SERV',
 'RGTI',
 'QBTS',
 'QUBT',
