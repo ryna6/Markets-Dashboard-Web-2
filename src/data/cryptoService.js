@@ -78,7 +78,8 @@ async function refreshCryptoIfNeeded() {
       price: c.current_price,
       marketCap: c.market_cap ?? null,
       changePct1D: c.price_change_percentage_24h,
-      changePct1W: c.price_change_percentage_7d_in_currency
+      changePct1W: c.price_change_percentage_7d_in_currency,
+      logoUrl: c.image,
     }));
 
     cryptoState.lastFetch = toEstIso(new Date());
