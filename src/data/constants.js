@@ -6,16 +6,11 @@ export const TIMEFRAMES = {
 };
 
 export const STORAGE_KEYS = {
-  // Legacy global timeframe (not used by new code)
-  timeframe: 'md_timeframe',
+  // S&P 500 cache
+  sp500Cache: 'md_sp500_cache',
 
-  // S&P 500 caches
-  sp500Cache: 'md_sp500_cache',      // quotes, weeklyChange, marketCaps
-  sp500History: 'md_sp500_history',  // daily close history + lastWeeklyCalc
-
-  // Sector caches
-  sectorCache: 'md_sector_cache',      // quotes, weeklyChange
-  sectorHistory: 'md_sector_history',  // daily close history + lastWeeklyCalc
+  // Sector cache
+  sectorCache: 'md_sector_cache',
 
   // Crypto + earnings + profiles
   cryptoCache: 'md_crypto_cache',
@@ -24,7 +19,6 @@ export const STORAGE_KEYS = {
 };
 
 export const TIMEFRAME_STORAGE_KEYS = {
-  sp500: 'md_sp500_timeframe',
-  sectors: 'md_sectors_timeframe',
+  // Only crypto still supports 1D/1W switching
   crypto: 'md_crypto_timeframe',
 };
