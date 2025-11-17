@@ -1,5 +1,6 @@
-// components/sp500Heatmap.js
+// src/components/sp500Heatmap.js
 import { getSp500Data, resetSp500Cache } from '../data/stocksService.js';
+import { resetSectorCache } from '../data/sectorService.js';
 import { renderHeatmap } from './heatmap.js';
 import { renderLastUpdatedLine } from './lastUpdated.js';
 import { TIMEFRAMES, TIMEFRAME_STORAGE_KEYS } from '../data/constants.js';
@@ -31,8 +32,11 @@ export function initSp500Heatmap() {
 
   if (refreshBtn) {
     refreshBtn.addEventListener('click', () => {
-      // Clear S&P cache and force a fresh refetch
+      // Clear BOTH S&P and Sector caches
       resetSp500Cache();
+      resetSectorCache();
+      // Re-render this view immediately; sectors will refetch
+      // next time you visit that tab or when its timer fires.
       refresh();
     });
   }
