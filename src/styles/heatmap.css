@@ -53,8 +53,10 @@
   width: 100%;
   height: 100%;
   gap: 2px;
+  transform: scale(var(--tile-scale, 1)); /* scales column based on tile size */ 
+  transform-origin: center;
 }
-
+ 
 /* Logo at the top */
 .tile-logo {
   max-height: 16px;
