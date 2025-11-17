@@ -19,6 +19,7 @@ let sp500State = {
   symbols: SP500_SYMBOLS.slice(), // S&P universe (or your subset)
   quotes: {},                     // symbol -> { price, changePct1D }
   marketCaps: {},                 // symbol -> number
+  logos: {},                      // symbol -> logo URL
   lastQuotesFetch: null,
   lastMarketCapFetch: null,
   status: 'idle',
@@ -33,6 +34,7 @@ function loadCache() {
     sp500State.symbols = parsed.symbols || sp500State.symbols;
     sp500State.quotes = parsed.quotes || {};
     sp500State.marketCaps = parsed.marketCaps || {};
+    sp500State.logos = parsed.logos || {};
     sp500State.lastQuotesFetch = parsed.lastQuotesFetch || null;
     sp500State.lastMarketCapFetch = parsed.lastMarketCapFetch || null;
   } catch (_) {
@@ -45,6 +47,7 @@ function saveCache() {
     symbols: sp500State.symbols,
     quotes: sp500State.quotes,
     marketCaps: sp500State.marketCaps,
+    logos: sp500State.logos,
     lastQuotesFetch: sp500State.lastQuotesFetch,
     lastMarketCapFetch: sp500State.lastMarketCapFetch,
   };
@@ -107,7 +110,7 @@ async function refreshQuotesIfNeeded() {
   saveCache();
 }
 
-// ----------------- Market caps for tile sizing via profile ---------------
+// ----------------- Market caps + logos via company profile ---------------
 
 async function refreshMarketCapsIfNeeded() {
   const nowEstIso = toEstIso(new Date());
@@ -124,27 +127,32 @@ async function refreshMarketCapsIfNeeded() {
   }
 
   const marketCaps = { ...sp500State.marketCaps };
+  const logos = { ...sp500State.logos };
 
   for (const symbol of sp500State.symbols) {
-    if (marketCaps[symbol] != null) continue;
+    const key = symbol.toUpperCase();
+    const hasCap = marketCaps[key] != null;
+    const hasLogo = logos[key] != null;
+
+    if (hasCap && hasLogo) continue;
+
     try {
-      const profile = await getCompanyProfile(symbol);
-      if (profile && typeof profile.marketCap === 'number') {
-        marketCaps[symbol] = profile.marketCap;
+      const profile = await getCompanyProfile(key);
+      if (profile) {
+        if (typeof profile.marketCap === 'number') {
+          marketCaps[key] = profile.marketCap;
+        }
+        if (profile.logo) {
+          logos[key] = profile.logo;
+        }
       }
     } catch (err) {
-      console.warn('SP500 marketCap error', symbol, err);
+      console.warn('SP500 marketCap/logo error', symbol, err);
     }
   }
 
-  if (profile && typeof profile.marketCap ==='number') {
-    marketCaps[symbol] = profile.marketCap;
-  }
-  const logo = profile.logo || null;
-  if (!sp500State.logos) sp500State.logos = {};
-  sp500State.logos[symbol] = logo;
-  
   sp500State.marketCaps = marketCaps;
+  sp500State.logos = logos;
   sp500State.lastMarketCapFetch = nowEstIso;
   saveCache();
 }
@@ -184,6 +192,7 @@ export function resetSp500Cache() {
     symbols: SP500_SYMBOLS.slice(),
     quotes: {},
     marketCaps: {},
+    logos: {},
     lastQuotesFetch: null,
     lastMarketCapFetch: null,
     status: 'idle',
