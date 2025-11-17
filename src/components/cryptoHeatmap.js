@@ -49,6 +49,7 @@ export function initCryptoHeatmap() {
         marketCap: c.marketCap,
         changePct1D: c.changePct1D,
         changePct1W: c.changePct1W,
+        logoUrl: c.logoUrl,
       }));
 
       renderHeatmap(heatmapContainer, tiles, tf);
