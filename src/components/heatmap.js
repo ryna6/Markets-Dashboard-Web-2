@@ -15,14 +15,16 @@ export function renderHeatmap(container, tiles, timeframe) {
     return;
   }
 
-  // Normalize market caps into weights
-  const totalCap = valid
+  // 👉 Sort once by market cap (largest first) for a stable, non-random feel
+  const sorted = [...valid].sort((a, b) => b.marketCap - a.marketCap);
+
+  const totalCap = sorted
     .map((t) => t.marketCap)
     .reduce((a, b) => a + b, 0);
 
   if (!totalCap) return;
 
-  const nodes = valid.map((t) => ({
+  const nodes = sorted.map((t) => ({
     tile: t,
     weight: t.marketCap,
   }));
@@ -89,6 +91,10 @@ function pctColorClass(pct) {
  * - x, y, w, h: numbers in [0,1] representing the rectangle
  * - orientation: 'vertical' or 'horizontal'
  *
+ * IMPORTANT: we DO NOT resort inside this function. We rely on the order
+ * of `nodes` passed in (already sorted by market cap) so layout feels stable:
+ * largest tiles consistently occupy the top-left / dominant area.
+ *
  * Returns: [{ tile, x, y, w, h }]
  */
 function computeTreemap(nodes, x, y, w, h, orientation) {
@@ -102,16 +108,14 @@ function computeTreemap(nodes, x, y, w, h, orientation) {
     return [{ tile: nodes[0].tile, x, y, w, h }];
   }
 
-  // Sort by weight descending
-  const sorted = [...nodes].sort((a, b) => b.weight - a.weight);
-
-  // Split into two groups to balance total weights
+  // 👉 DO NOT sort again here. We keep the order that renderHeatmap gave us.
+  // We just split the list into two groups trying to balance total weights.
   const groupA = [];
   const groupB = [];
   let sumA = 0;
   let sumB = 0;
 
-  for (const n of sorted) {
+  for (const n of nodes) {
     if (sumA <= sumB) {
       groupA.push(n);
       sumA += n.weight;
