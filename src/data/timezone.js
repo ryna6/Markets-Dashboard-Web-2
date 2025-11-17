@@ -1,44 +1,68 @@
 // src/data/timezone.js
-const EST_TIMEZONE = 'America/New_York';
+
+export const EST_TIMEZONE = 'America/New_York';
 
 export function toEstIso(date) {
   const estString = date.toLocaleString('en-US', { timeZone: EST_TIMEZONE });
-  return new Date(estString).toISOString();
+  const estDate = new Date(estString);
+  return estDate.toISOString();
 }
 
-export function formatEstTime(iso) {
-  if (!iso) return '--';
-  const d = new Date(iso);
-  const opts = {
+export function formatEstTime(isoString) {
+  if (!isoString) return '';
+  const d = new Date(isoString);
+  return d.toLocaleTimeString('en-US', {
+    timeZone: EST_TIMEZONE,
     hour: '2-digit',
     minute: '2-digit',
-    timeZone: EST_TIMEZONE,
-    hour12: false
-  };
-  const time = new Intl.DateTimeFormat('en-US', opts).format(d);
-  return `${time} EST`;
+  });
 }
 
-export function isOlderThanMinutes(iso, minutes, tz = EST_TIMEZONE) {
-  if (!iso) return true;
+export function isOlderThanMinutes(isoString, minutes, timeZone = EST_TIMEZONE) {
+  if (!isoString) return true;
   const now = new Date();
-  const nowTz = new Date(
-    now.toLocaleString('en-US', { timeZone: tz })
-  );
-  const then = new Date(iso);
-  const diffMs = nowTz - then;
+  const nowStr = now.toLocaleString('en-US', { timeZone });
+  const nowInZone = new Date(nowStr);
+  const thenInZone = new Date(isoString);
+  const diffMs = nowInZone - thenInZone;
   return diffMs > minutes * 60 * 1000;
 }
 
-// For earnings-week calculation (Mon–Fri in EST)
+export function isDifferentTradingDay(isoA, isoB, timeZone = EST_TIMEZONE) {
+  if (!isoA || !isoB) return true;
+  const d1 = new Date(new Date(isoA).toLocaleString('en-US', { timeZone }));
+  const d2 = new Date(new Date(isoB).toLocaleString('en-US', { timeZone }));
+  return d1.toDateString() !== d2.toDateString();
+}
+
+// Mon–Fri for the "display week":
+// - Mon–Fri before 18:00 EST  => current week
+// - Fri after 18:00, Sat, Sun => next week (upcoming Mon–Fri)
 export function getCurrentWeekRangeEst(now = new Date()) {
   const estNow = new Date(
     now.toLocaleString('en-US', { timeZone: EST_TIMEZONE })
   );
-  const day = estNow.getDay(); // 0 Sun ... 6 Sat
-  const diffToMonday = day === 0 ? -6 : 1 - day;
-  const monday = new Date(estNow);
-  monday.setDate(estNow.getDate() + diffToMonday);
+
+  const day = estNow.getDay();   // 0=Sun, 1=Mon,...,5=Fri,6=Sat
+  const hour = estNow.getHours();
+
+  let reference = new Date(estNow);
+
+  const isAfterFridayClose =
+    (day === 5 && hour >= 18) || day === 6 || day === 0;
+
+  if (isAfterFridayClose) {
+    // Move reference to next Monday
+    const daysToNextMonday = ((8 - day) % 7) || 7;
+    reference.setDate(reference.getDate() + daysToNextMonday);
+    reference.setHours(0, 0, 0, 0);
+  }
+
+  const refDay = reference.getDay();
+  const diffToMonday = refDay === 0 ? -6 : 1 - refDay;
+
+  const monday = new Date(reference);
+  monday.setDate(reference.getDate() + diffToMonday);
   monday.setHours(0, 0, 0, 0);
 
   const friday = new Date(monday);
