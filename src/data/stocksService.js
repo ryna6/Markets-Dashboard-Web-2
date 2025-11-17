@@ -188,3 +188,22 @@ export async function getSp500Data(timeframe) {
     error: sp500State.error
   };
 }
+
+export function resetSp500Cache() {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.sp500Cache);
+  } catch (_) {
+    // ignore storage errors
+  }
+  sp500State = {
+    symbols: [],
+    quotes: {},
+    weeklyChange: {},
+    marketCaps: {},
+    lastQuotesFetch: null,
+    lastWeeklyFetch: null,
+    status: 'idle',
+    error: null
+  };
+}
+
