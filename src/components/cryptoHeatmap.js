@@ -1,5 +1,5 @@
-// components/cryptoHeatmap.js
-import { getCryptoData } from '../data/cryptoService.js';
+// src/components/cryptoHeatmap.js
+import { getCryptoData, resetCryptoCache } from '../data/cryptoService.js';
 import { renderHeatmap } from './heatmap.js';
 import { renderLastUpdatedLine } from './lastUpdated.js';
 import { TIMEFRAMES, TIMEFRAME_STORAGE_KEYS } from '../data/constants.js';
@@ -11,6 +11,7 @@ export function initCryptoHeatmap() {
   const heatmapContainer = container.querySelector('.heatmap-container');
   const lastUpdatedEl = container.querySelector('.last-updated');
   const dropdown = container.querySelector('.timeframe-select');
+  const refreshBtn = container.querySelector('.crypto-refresh-btn');
 
   const tfKey =
     (TIMEFRAME_STORAGE_KEYS && TIMEFRAME_STORAGE_KEYS.crypto) ||
@@ -24,6 +25,14 @@ export function initCryptoHeatmap() {
     dropdown.addEventListener('change', () => {
       currentTimeframe = dropdown.value;
       localStorage.setItem(tfKey, currentTimeframe);
+      refresh();
+    });
+  }
+
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => {
+      // Clear crypto cache and force a fresh refetch
+      resetCryptoCache();
       refresh();
     });
   }
