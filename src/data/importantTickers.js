@@ -1505,4 +1505,23 @@ export const IMPORTANT_TICKERS = [
 'YOU',
 'ZD',
 
+
+// Watchlist
+'RCAT',
+'GRRR',
+'UMAC',
+'ACHR',
+'ATLX',
+'NVTS',
+'KULR',
+'PDYN',
+'KITT',
+'OPTT',
+'RGTI',
+'QBTS',
+'QUBT',
+'IONQ',
+'QS',
+'QMCO',
+
 ];
