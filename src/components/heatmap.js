@@ -58,7 +58,7 @@ export function renderHeatmap(container, tiles, timeframe) {
     
     // Clamp so it never gets too tiny or huge
     if (scale < 0.7) scale = 0.7;
-    if (scale > 1.35) scale = 1.35;
+    if (scale > 3) scale = 3;
     
     // Expose to CSS as a custom property
     el.style.setProperty('--tile-scale', scale.toString());
