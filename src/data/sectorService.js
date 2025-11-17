@@ -2,8 +2,8 @@
 import { apiClient } from './apiClient.js';
 import { STORAGE_KEYS } from './constants.js';
 import { toEstIso, isOlderThanMinutes } from './timezone.js';
-import { getCompanyProfile } from './companyService.js';
 
+// Refresh cadences
 const SECTOR_REFRESH_MINUTES = 10;
 const SECTOR_WEEKLY_REFRESH_MINUTES = 60 * 12;
 
@@ -22,11 +22,26 @@ const SECTOR_LIST = [
   { symbol: 'XLP', name: 'Consumer Staples' },
 ];
 
+// Static S&P 500 sector weights (approx., mid-2025)
+// Source: public S&P 500 sector weight breakdowns. 
+const SECTOR_WEIGHTS = {
+  XLK: 34.0,  // Information Technology
+  XLF: 13.8,  // Financials
+  XLY: 10.4,  // Consumer Discretionary
+  XLC: 9.9,   // Communication Services
+  XLV: 8.8,   // Health Care
+  XLI: 8.6,   // Industrials
+  XLP: 5.2,   // Consumer Staples
+  XLE: 3.0,   // Energy
+  XLU: 2.5,   // Utilities
+  XLRE: 2.0,  // Real Estate
+  XLB: 1.9,   // Materials (approx.)
+};
+
 let sectorState = {
   sectors: SECTOR_LIST,
   quotes: {},          // symbol -> { price, changePct1D }
   weeklyChange: {},    // symbol -> { changePct1W }
-  marketCaps: {},      // symbol -> number
   lastQuotesFetch: null,
   lastWeeklyFetch: null,
   status: 'idle',
@@ -40,7 +55,6 @@ function loadCache() {
     const parsed = JSON.parse(raw);
     sectorState.quotes = parsed.quotes || sectorState.quotes;
     sectorState.weeklyChange = parsed.weeklyChange || sectorState.weeklyChange;
-    sectorState.marketCaps = parsed.marketCaps || sectorState.marketCaps;
     sectorState.lastQuotesFetch = parsed.lastQuotesFetch || null;
     sectorState.lastWeeklyFetch = parsed.lastWeeklyFetch || null;
   } catch (_) {}
@@ -50,7 +64,6 @@ function saveCache() {
   const snapshot = {
     quotes: sectorState.quotes,
     weeklyChange: sectorState.weeklyChange,
-    marketCaps: sectorState.marketCaps,
     lastQuotesFetch: sectorState.lastQuotesFetch,
     lastWeeklyFetch: sectorState.lastWeeklyFetch,
   };
@@ -163,26 +176,6 @@ async function refreshSectorWeeklyIfNeeded() {
   saveCache();
 }
 
-async function refreshSectorMarketCapsIfNeeded() {
-  const symbols = getSectorSymbols();
-  const marketCaps = { ...sectorState.marketCaps };
-
-  for (const symbol of symbols) {
-    if (marketCaps[symbol] != null) continue;
-    try {
-      const profile = await getCompanyProfile(symbol);
-      if (profile && typeof profile.marketCap === 'number') {
-        marketCaps[symbol] = profile.marketCap;
-      }
-    } catch (err) {
-      console.warn('Sector marketCap error', symbol, err);
-    }
-  }
-
-  sectorState.marketCaps = marketCaps;
-  saveCache();
-}
-
 export async function getSectorData(timeframe) {
   try {
     await refreshSectorQuotesIfNeeded();
@@ -198,17 +191,12 @@ export async function getSectorData(timeframe) {
     }
   }
 
-  try {
-    await refreshSectorMarketCapsIfNeeded();
-  } catch (err) {
-    sectorState.error = err.message;
-  }
-
+  // We always return static SECTOR_WEIGHTS as marketCaps for sizing.
   return {
     sectors: sectorState.sectors,
     quotes: sectorState.quotes,
     weeklyChange: sectorState.weeklyChange,
-    marketCaps: sectorState.marketCaps,
+    marketCaps: SECTOR_WEIGHTS,
     lastQuotesFetch: sectorState.lastQuotesFetch,
     status: sectorState.status,
     error: sectorState.error,
