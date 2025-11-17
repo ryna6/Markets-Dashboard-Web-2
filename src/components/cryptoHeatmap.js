@@ -13,25 +13,28 @@ export function initCryptoHeatmap() {
   const dropdown = container.querySelector('.timeframe-select');
   const refreshBtn = container.querySelector('.crypto-refresh-btn');
 
-  const tfKey =
-    (TIMEFRAME_STORAGE_KEYS && TIMEFRAME_STORAGE_KEYS.crypto) ||
-    'md_crypto_timeframe';
-
+  const tfKey = TIMEFRAME_STORAGE_KEYS.crypto;
+  const savedTf =
+    (tfKey && localStorage.getItem(tfKey)) || TIMEFRAMES.ONE_DAY;
   let currentTimeframe =
-    localStorage.getItem(tfKey) || TIMEFRAMES.ONE_DAY;
+    savedTf === TIMEFRAMES.ONE_WEEK ? TIMEFRAMES.ONE_WEEK : TIMEFRAMES.ONE_DAY;
 
   if (dropdown) {
     dropdown.value = currentTimeframe;
     dropdown.addEventListener('change', () => {
-      currentTimeframe = dropdown.value;
-      localStorage.setItem(tfKey, currentTimeframe);
+      const value = dropdown.value === TIMEFRAMES.ONE_WEEK
+        ? TIMEFRAMES.ONE_WEEK
+        : TIMEFRAMES.ONE_DAY;
+      currentTimeframe = value;
+      if (tfKey) {
+        localStorage.setItem(tfKey, value);
+      }
       refresh();
     });
   }
 
   if (refreshBtn) {
     refreshBtn.addEventListener('click', () => {
-      // Clear crypto cache and force a fresh refetch
       resetCryptoCache();
       refresh();
     });
@@ -49,7 +52,7 @@ export function initCryptoHeatmap() {
         marketCap: c.marketCap,
         changePct1D: c.changePct1D,
         changePct1W: c.changePct1W,
-        logoUrl: c.logoUrl,
+        logoUrl: c.logoUrl || null,
       }));
 
       renderHeatmap(heatmapContainer, tiles, tf);
