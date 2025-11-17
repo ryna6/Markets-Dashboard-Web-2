@@ -7,7 +7,7 @@ import { getCompanyProfile } from './companyService.js';
 const SECTOR_REFRESH_MINUTES = 10;
 const SECTOR_WEEKLY_REFRESH_MINUTES = 60 * 12;
 
-// Fixed list of SPDR sector ETFs
+// SPDR sector ETFs
 const SECTOR_LIST = [
   { symbol: 'XLF', name: 'Financials' },
   { symbol: 'XLK', name: 'Technology' },
@@ -19,18 +19,18 @@ const SECTOR_LIST = [
   { symbol: 'XLRE', name: 'Real Estate' },
   { symbol: 'XLC', name: 'Communication Services' },
   { symbol: 'XLU', name: 'Utilities' },
-  { symbol: 'XLP', name: 'Consumer Staples' }
+  { symbol: 'XLP', name: 'Consumer Staples' },
 ];
 
 let sectorState = {
   sectors: SECTOR_LIST,
   quotes: {},          // symbol -> { price, changePct1D }
   weeklyChange: {},    // symbol -> { changePct1W }
-  marketCaps: {},      // symbol -> number (ETF AUM proxy)
+  marketCaps: {},      // symbol -> number
   lastQuotesFetch: null,
   lastWeeklyFetch: null,
   status: 'idle',
-  error: null
+  error: null,
 };
 
 function loadCache() {
@@ -38,7 +38,7 @@ function loadCache() {
   if (!raw) return;
   try {
     const parsed = JSON.parse(raw);
-    sectorState = { ...sectorState, ...parsed };
+    sectorState.marketCaps = parsed.marketCaps || sectorState.marketCaps;
   } catch (_) {}
 }
 
@@ -49,7 +49,7 @@ function saveCache() {
     weeklyChange: sectorState.weeklyChange,
     marketCaps: sectorState.marketCaps,
     lastQuotesFetch: sectorState.lastQuotesFetch,
-    lastWeeklyFetch: sectorState.lastWeeklyFetch
+    lastWeeklyFetch: sectorState.lastWeeklyFetch,
   };
   localStorage.setItem(STORAGE_KEYS.sectorCache, JSON.stringify(snapshot));
 }
@@ -57,11 +57,12 @@ function saveCache() {
 loadCache();
 
 function getSectorSymbols() {
-  return sectorState.sectors.map(s => s.symbol);
+  return sectorState.sectors.map((s) => s.symbol);
 }
 
 async function refreshSectorQuotesIfNeeded() {
   const nowEstIso = toEstIso(new Date());
+
   if (
     sectorState.lastQuotesFetch &&
     !isOlderThanMinutes(
@@ -79,16 +80,27 @@ async function refreshSectorQuotesIfNeeded() {
   const symbols = getSectorSymbols();
   if (!symbols.length) return;
 
-  const quotes = { ...sectorState.quotes };
+  const quotes = {};
 
   for (const symbol of symbols) {
     try {
       const data = await apiClient.finnhub(
         `/quote?symbol=${encodeURIComponent(symbol)}`
       );
+      const price = data.c;
+      let pct1D = typeof data.dp === 'number' ? data.dp : null;
+      if (
+        pct1D == null &&
+        typeof data.c === 'number' &&
+        typeof data.pc === 'number' &&
+        data.pc !== 0
+      ) {
+        pct1D = ((data.c - data.pc) / data.pc) * 100;
+      }
+
       quotes[symbol] = {
-        price: data.c,
-        changePct1D: data.dp
+        price,
+        changePct1D: pct1D,
       };
     } catch (_) {
       continue;
@@ -103,6 +115,7 @@ async function refreshSectorQuotesIfNeeded() {
 
 async function refreshSectorWeeklyIfNeeded() {
   const nowEstIso = toEstIso(new Date());
+
   if (
     sectorState.lastWeeklyFetch &&
     !isOlderThanMinutes(
@@ -125,14 +138,17 @@ async function refreshSectorWeeklyIfNeeded() {
   for (const symbol of symbols) {
     try {
       const data = await apiClient.finnhub(
-        `/stock/candle?symbol=${encodeURIComponent(symbol)}&resolution=D&from=${weekAgoSec}&to=${nowSec}`
+        `/stock/candle?symbol=${encodeURIComponent(
+          symbol
+        )}&resolution=D&from=${weekAgoSec}&to=${nowSec}`
       );
       if (data.s !== 'ok' || !data.c || data.c.length < 2) continue;
 
       const closes = data.c;
       const latest = closes[closes.length - 1];
       const weekAgo = closes[0];
-      if (!weekAgo) continue;
+
+      if (!weekAgo || weekAgo === 0) continue;
 
       const pct = ((latest - weekAgo) / weekAgo) * 100;
       weeklyChange[symbol] = { changePct1W: pct };
@@ -168,10 +184,6 @@ async function refreshSectorMarketCapsIfNeeded() {
   saveCache();
 }
 
-/**
- * Public API used by sectorHeatmap.js
- * timeframe: '1D' | '1W'
- */
 export async function getSectorData(timeframe) {
   try {
     await refreshSectorQuotesIfNeeded();
@@ -194,6 +206,6 @@ export async function getSectorData(timeframe) {
     marketCaps: sectorState.marketCaps,
     lastQuotesFetch: sectorState.lastQuotesFetch,
     status: sectorState.status,
-    error: sectorState.error
+    error: sectorState.error,
   };
 }
