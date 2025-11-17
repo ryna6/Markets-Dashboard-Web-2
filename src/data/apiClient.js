@@ -1,7 +1,7 @@
 // src/data/apiClient.js
 const FINNHUB_BASE = 'https://finnhub.io/api/v1';
 const CG_BASE = 'https://api.coingecko.com/api/v3';
-const FMP_BASE = 'https://financialmodelingprep.com/api/v3';
+const FMP_BASE = 'https://financialmodelingprep.com';
 
 const FINNHUB_KEY = 'd4d73mhr01qovljoddigd4d73mhr01qovljoddj0';
 const CG_KEY = 'CG-3Vngf8kaoQdxDXjrg1jUJyYB';
