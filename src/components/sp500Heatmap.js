@@ -25,7 +25,7 @@ export function initSp500Heatmap() {
     const timeframe = '1D'; // S&P only shows 1D now
     try {
       const data = await getSp500Data();
-      const { symbols, quotes, marketCaps } = data;
+      const { symbols, quotes, marketCaps, logos } = data;
 
       const tiles = symbols.map((sym) => {
         const q = quotes[sym] || {};
@@ -33,7 +33,8 @@ export function initSp500Heatmap() {
           symbol: sym,
           marketCap: marketCaps ? marketCaps[sym] : null,
           changePct1D: q.changePct1D,
-          logoUrl: logos ? logos[sym] : null,
+          // 1W unused here; heatmap uses 1D because timeframe='1D'
+          logoUrl: logos ? logos[sym.toUpperCase()] || logos[sym] : null,
         };
       });
 
