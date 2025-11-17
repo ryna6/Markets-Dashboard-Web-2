@@ -238,3 +238,19 @@ export async function getWeeklyEarnings() {
     error: earningsState.error,
   };
 }
+
+export function resetEarningsCache() {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.earningsCache);
+  } catch (_) {
+    // ignore storage errors
+  }
+  earningsState = {
+    weekKey: null,
+    dataByDay: null,
+    lastFetch: null,
+    status: 'idle',
+    error: null,
+  };
+}
+
