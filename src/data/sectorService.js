@@ -22,8 +22,7 @@ const SECTOR_LIST = [
   { symbol: 'XLP', name: 'Consumer Staples' },
 ];
 
-// Static S&P 500 sector weights (approx., mid-2025)
-// Source: public S&P 500 sector weight breakdowns. 
+// Static S&P 500 sector weights (approx)
 const SECTOR_WEIGHTS = {
   XLK: 34.0,  // Information Technology
   XLF: 13.8,  // Financials
@@ -35,7 +34,7 @@ const SECTOR_WEIGHTS = {
   XLE: 3.0,   // Energy
   XLU: 2.5,   // Utilities
   XLRE: 2.0,  // Real Estate
-  XLB: 1.9,   // Materials (approx.)
+  XLB: 1.9,   // Materials (approx)
 };
 
 let sectorState = {
@@ -191,14 +190,32 @@ export async function getSectorData(timeframe) {
     }
   }
 
-  // We always return static SECTOR_WEIGHTS as marketCaps for sizing.
   return {
     sectors: sectorState.sectors,
     quotes: sectorState.quotes,
     weeklyChange: sectorState.weeklyChange,
+    // fixed "marketCap" weights for treemap sizing
     marketCaps: SECTOR_WEIGHTS,
     lastQuotesFetch: sectorState.lastQuotesFetch,
     status: sectorState.status,
     error: sectorState.error,
+  };
+}
+
+export function resetSectorCache() {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.sectorCache);
+  } catch (_) {
+    // ignore storage errors
+  }
+
+  sectorState = {
+    sectors: SECTOR_LIST,
+    quotes: {},
+    weeklyChange: {},
+    lastQuotesFetch: null,
+    lastWeeklyFetch: null,
+    status: 'idle',
+    error: null,
   };
 }
