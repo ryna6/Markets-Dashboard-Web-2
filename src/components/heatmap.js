@@ -54,7 +54,7 @@ export function renderHeatmap(container, tiles, timeframe) {
     el.style.height = `${h * 100}%`;
 
     const area = w * h; // normalized area (0–1)
-    let scale = 1 + Math.sqrt(area) * 2; // base + grow with size
+    let scale = 1 + Math.sqrt(area) * 4; // base + grow with size
     
     // Clamp so it never gets too tiny or huge
     if (scale < 0.8) scale = 0.8;
