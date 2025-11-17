@@ -18,7 +18,7 @@ let cryptoState = {
   items: [],       // [{ id, symbol, name, price, marketCap, changePct1D, changePct1W }]
   lastFetch: null,
   status: 'idle',
-  error: null
+  error: null,
 };
 
 function loadCache() {
