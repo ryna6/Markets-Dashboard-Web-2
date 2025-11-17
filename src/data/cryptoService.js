@@ -5,13 +5,21 @@ import { toEstIso, isOlderThanMinutes } from './timezone.js';
 
 const CRYPTO_REFRESH_MINUTES = 5;
 const DEFAULT_IDS = [
-  'bitcoin',
-  'ethereum',
-  'solana',
-  'binancecoin',
-  'ripple',
-  'cardano',
-  'dogecoin'
+  'bitcoin',        // BTC
+  'ethereum',       // ETH
+  'binancecoin',    // BNB
+  'solana',         // SOL
+  'ripple',         // XRP
+  'cardano',        // ADA
+  'dogecoin',       // DOGE
+  'tron',           // TRX
+  'avalanche-2',    // AVAX
+  'toncoin',        // TON
+  'chainlink',      // LINK
+  'polkadot',       // DOT
+  'uniswap',        // UNI
+  'litecoin',       // LTC
+  'polygon'         // MATIC
 ];
 
 let cryptoState = {
