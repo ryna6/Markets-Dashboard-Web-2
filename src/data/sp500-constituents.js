@@ -40,7 +40,17 @@ export const SP500_CONSTITUENTS = [
   { symbol: 'PM', name: 'Philip Morris International' },
   { symbol: 'TMUS', name: 'T-Mobile US' },
   { symbol: 'GS', name: 'Goldman Sachs' },
-  // ...add more as needed
+  { symbol: 'MRK', name: 'Merck & Co.' },
+  { symbol: 'ABT', name: 'Abbott Laboratories' },
+  { symbol: 'CRM', name: 'Salesforce' },
+  { symbol: 'MCD', name: 'McDonald's' },
+  { symbol: 'TMO', name: 'Thermo Fisher Scientific' },
+  { symbol: 'PEP', name: 'PepsiCo' },
+  { symbol: 'LIN', name: 'Linde plc' },
+  { symbol: 'ISRG', name: 'Intuitive Surgical' },
+  { symbol: 'UBER', name: 'Uber' },
+  { symbol: 'DIS', name: 'Walt Disney Company (The)' }
+  // Top 50 companies based on market cap
 ];
 
 export const SP500_SYMBOLS = SP500_CONSTITUENTS.map(c => c.symbol);
