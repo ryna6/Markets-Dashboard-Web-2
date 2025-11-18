@@ -3,6 +3,7 @@
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  gap: 8px;
 }
 
 .earnings-grid {
