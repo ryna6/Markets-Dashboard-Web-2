@@ -2,8 +2,22 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Markets Dashboard</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Market Dashboard</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#050816" />
+
+    <!-- iOS PWA support -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-title" content="Market Dashboard" />
+    <link rel="apple-touch-icon" href="/icons/icon-180x180.png" />
+
     <!-- Styles -->
     <link rel="stylesheet" href="./src/styles/base.css" />
     <link rel="stylesheet" href="./src/styles/layout.css" />
@@ -14,7 +28,7 @@
   <body class="theme-dark">
     <div id="app">
       <header class="app-header">
-        <h1>Markets Dashboard</h1>
+        <h1>Market Dashboard</h1>
       </header>
 
       <main id="view-container">
