@@ -24,9 +24,32 @@
 
 .toolbar {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   margin-bottom: 6px;
+  gap: 8px;
+}
+
+/* Title on the left */
+.toolbar-title {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Let the title take all available left space */
+.toolbar > .toolbar-title {
+  flex: 1;
+}
+
+/* Right-side controls wrapper (used in Crypto toolbar) */
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Force earnings refresh button to the far right in its toolbar */
+.earnings-refresh-btn {
+  margin-left: auto;
 }
 
 .last-updated {
