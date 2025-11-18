@@ -69,7 +69,7 @@ export function renderHeatmap(container, tiles, timeframe) {
     let scale = 0.8 + Math.sqrt(area) * 3;
 
     // Clamp so it never gets too tiny or huge
-    if (scale < 0.8) scale = 0.8;
+    if (scale < 0.6) scale = 0.6;
     if (scale > 3) scale = 3;
 
     // Expose to CSS as a custom property (used by .tile-content)
