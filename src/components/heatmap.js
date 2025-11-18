@@ -66,7 +66,7 @@ export function renderHeatmap(container, tiles, timeframe) {
 
     // Use area as a proxy for how much content we can safely show inside
     const area = w * h; // normalized area (0–1)
-    let scale = 0.8 + Math.sqrt(area) * 3;
+    let scale = 0.6 + Math.sqrt(area) * 3;
 
     // Clamp so it never gets too tiny or huge
     if (scale < 0.4) scale = 0.4;
