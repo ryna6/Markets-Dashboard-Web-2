@@ -61,6 +61,7 @@
 /* Earnings tab: its own scroll and smaller bottom padding */
 #earnings-view {
   overflow-y: auto;
+  overflow-x: hidden; /* prevent the whole tab (incl. toolbar) from scrolling horizontally */
   -webkit-overflow-scrolling: touch;
   padding-bottom: calc(32px + env(safe-area-inset-bottom));
 }
