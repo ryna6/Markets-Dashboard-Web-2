@@ -45,35 +45,13 @@ export function renderHeatmap(container, tiles, timeframe) {
         ? fallback
         : null;
 
-        const colorClass = pctColorClass(pct);
+    const colorClass = pctColorClass(pct);
+
     el.className = `heatmap-tile ${colorClass}`;
-
-    // --- NEW: compress the vertical axis relative to the container ---
-    const { clientWidth, clientHeight } = container;
-
-    let scaleY = 1;
-    let offsetY = 0; // normalized (0–1) vertical offset
-
-    if (clientWidth > 0 && clientHeight > 0) {
-      // We aim for a content area whose height is about width / 1.2,
-      // but never taller than the actual container.
-      const desiredContentHeight = Math.min(
-        clientHeight,
-        clientWidth / 1.2
-      );
-
-      scaleY = desiredContentHeight / clientHeight;
-      // Center content vertically in the container
-      offsetY = (1 - scaleY) / 2;
-    }
-
-    // X axis unchanged
     el.style.left = `${x * 100}%`;
+    el.style.top = `${y * 100}%`;
     el.style.width = `${w * 100}%`;
-
-    // Y axis compressed + centered
-    el.style.top = `${(offsetY + y * scaleY) * 100}%`;
-    el.style.height = `${h * scaleY * 100}%`;
+    el.style.height = `${h * 100}%`;
 
     // --- rest of your code stays the same ---
     const area = w * h; // normalized area (0–1)
