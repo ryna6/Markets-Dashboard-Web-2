@@ -3,13 +3,12 @@
   width: 100%;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  gap: 8px;
+  gap: 10px;
 }
 
 .earnings-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
 }
 
 .earnings-day-column {
