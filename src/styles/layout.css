@@ -7,11 +7,17 @@
 
 #view-container {
   flex: 1;
-  padding: 8px 8px 50px; /* bottom padding to avoid tab bar overlap */
+
+  /* Fallback bottom padding */
+  padding: 8px 8px 70px;
+
+  /* Leave extra room for the taller tab bar + safe area */
+  padding-bottom: calc(70px + env(safe-area-inset-bottom));
 }
 
 .tab-view {
   display: none;
+  height: 100%;
 }
 
 .tab-view.active {
@@ -29,4 +35,10 @@
   font-size: 11px;
   opacity: 0.75;
   margin-bottom: 4px;
+}
+
+/* Allow vertical scrolling only on the earnings tab */
+#earnings-view {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
