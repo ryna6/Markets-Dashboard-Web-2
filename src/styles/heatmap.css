@@ -1,19 +1,9 @@
-/* Outer container fills the space in the app */
+/* Container for the entire heatmap */
 .heatmap-container {
   position: relative;
   width: 100%;
-  height: calc(300vh - 140px); /* fits nicely between header and tabs */
+  height: calc(90vh - 140px); /* adjust to taste */
   background-color: #050505;
-  overflow: hidden;
-}
-
-/* Inner container controls the aspect ratio for the treemap tiles */
-.heatmap-inner {
-  position: relative;
-  width: 100%;
-  /* Make the heatmap area closer to square, but never taller than the outer container */
-  height: min(calc(100vw / 1.2), 80%);
-  background-color: inherit;
   overflow: hidden;
 }
 
@@ -24,6 +14,12 @@
   border: 1px solid #111;
   padding: 4px;
   color: #fff;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Text',
+    'Helvetica Neue', Arial, sans-serif;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Color classes */
